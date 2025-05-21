@@ -1,4 +1,4 @@
-name: "JFrog-GitHub NPM Publish OIDC Integration"
+name: "Dom Test"
 on:
     workflow_dispatch:
     push:
