@@ -1,4 +1,4 @@
-name: "Reusable Workflow"
+name: "Workflow Call"
 on:
   workflow_call:
     inputs:
@@ -23,7 +23,6 @@ jobs:
      env:
       OIDC_AUDIENCE: 'jfrog-github'
       OIDC_PROVIDER: 'github-test'
-      JF_URL: ${{ vars.JF_URL }}
      defaults:
       run:
         working-directory: ./package
