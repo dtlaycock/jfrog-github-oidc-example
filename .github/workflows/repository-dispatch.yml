@@ -16,7 +16,7 @@ jobs:
       OIDC_PROVIDER: 'github-test'
      defaults:
       run:
-        working-directory: ./package
+        working-directory: ./${{ github.event.client_payload.github_repository }}/package
      steps:
        - name: Checkout
          uses: actions/checkout@v4
