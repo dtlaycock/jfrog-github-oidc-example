@@ -4,7 +4,7 @@ The desired outcome of these example workflows is to enforce a process and not a
 
 ## Example 1 - Limit by workflow name and/or repository
 
-The setup for this example is the standard OIDC integration from the jfrog/jfrog-github-oidc-example repository. The enforcement is configured in the Identity Mapping within the JFrog platform. Adding the following JSON claim:
+The setup for this example is the standard OIDC integration from the [JFrog OIDC example repo](https://github.com/jfrog/jfrog-github-oidc-example). The enforcement is configured in the Identity Mapping within the JFrog platform. Adding the following JSON claim:
 ```
 {"repository":"dtlaycock/jfrog-github-oidc-example"}
 ```
@@ -20,7 +20,7 @@ Or any combination of similar restrictions (the examples overlap and are from le
 
 That means that the token exchange would only work for this github repository. The configuration values for the JFrog CLI could be implemented as secrets or variables at the Organization level. That would make them discoverable but they couldn't be used in workflows in other repositories due to the limitations imposed by the Identity Mapping.
 
-See [.github/workflows/build-publish.yml]
+See [build & publish workflow](.github/workflows/build-publish.yml)
 
 ## Example 2 - Bypass the secrets restriction by using an intermediary service
 
@@ -43,4 +43,4 @@ curl --silent --location 'https://api.github.com/repos/dtlaycock/jfrog-github-oi
 }'
 ```
 
-See [.github/workflows/repository-dispatch.yml]
+See [Repository Dispatch Workflow](.github/workflows/repository-dispatch.yml)
