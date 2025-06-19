@@ -19,7 +19,9 @@ jobs:
         working-directory: ./package
      steps:
        - name: Checkout
-         uses: actions/checkout@v3
+         uses: actions/checkout@v4
+         with:
+           repository: ${{ github.event.client_payload.github_repository }}
               
        - name: Setup Node npm
          uses: actions/setup-node@v3

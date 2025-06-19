@@ -1,80 +1,46 @@
-# GitHub Actions and JFrog Integration with OIDC Example
+# Examples of configuring Github Actions to use the OIDC integration with JFrog
 
-This example repository demonstrates how to seamlessly integrate GitHub Actions with JFrog, leveraging OpenID Connect (OIDC) for secure and authenticated interactions. This integration ensures a streamlined and automated workflow for managing artifacts with JFrog Artifactory in your GitHub repositories.
+The desired outcome of these example workflows is to enforce a process and not allow teams to bypass it. The ideal setup would be a workflow_dispatch to a reusable workflow that defines a secret, which only the workflow_call repo would be able to see. However, this is not possible. Secrets and variables have to be defined by the calling workflow and declared as part of the workflow_dispatch trigger.
 
-## Table of Contents
+## Example 1 - Limit by workflow name and/or repository
 
-- [Introduction](#introduction)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Workflow Overview](#workflow-overview)
-- [Configuration](#configuration)
-- [Secrets](#secrets)
-- [References](#references)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Introduction
-
-This example illustrates how to set up GitHub Actions workflows to interact with JFrog Artifactory using OpenID Connect (OIDC) for authentication. GitHub Actions provide a powerful and automated way to build, test, and deploy your applications, and integrating JFrog adds efficient artifact management to the process.
-
-## Prerequisites
-
-Before you begin, make sure you have the following prerequisites:
-
-- A GitHub account
-- A JFrog Artifactory account
-- OIDC configured in JFrog Artifactory (see documentation)
-
-## Getting Started
-
-1. Clone this repository:
-
+The setup for this example is the standard OIDC integration from the jfrog/jfrog-github-oidc-example repository. The enforcement is configured in the Identity Mapping within the JFrog platform. Adding the following JSON claim:
 ```
-git clone https://github.com/yourusername/github-actions-jfrog-oidc-example.git
-cd github-actions-jfrog-oidc-example
+{"repository":"dtlaycock/jfrog-github-oidc-example"}
 ```
 
-2. Customize the GitHub Actions workflows in the `.github/workflows` directory to suit your project's needs.
+Or any combination of similar restrictions (the examples overlap and are from least to most restrictive):
+```
+{
+    "workflow": "Build & Publish",
+    "repository": "dtlaycock/jfrog-github-oidc-example",
+    "workflow_ref": "dtlaycock/jfrog-github-oidc-example/.github/workflows/build-publish.yml@refs/head/main"
+}
+```
 
-3. Update the configuration files and scripts as required for your specific use case.
+That means that the token exchange would only work for this github repository. The configuration values for the JFrog CLI could be implemented as secrets or variables at the Organization level. That would make them discoverable but they couldn't be used in workflows in other repositories due to the limitations imposed by the Identity Mapping.
 
-4. Commit your changes and push them to your GitHub repository.
+See [.github/workflows/build-publish.yml]
 
-5. Check the Actions tab on your GitHub repository to see the workflow in action.
+## Example 2 - Bypass the secrets restriction by using an intermediary service
 
-## Workflow Overview
+This example doesn't have any restrictions in the identity mapping on the JFrog side. The centralized workflow has secrets defined and it expects to be triggered via a call to the Github Actions dispatch API, which would include a JSON payload to indicate which repository should be built, the artifactory repository to use when resolving the dependencies during the build process and the artifactory repository to publish the build artifact(s) to.
 
-The workflow in this example includes the following steps:
+The cURL command to trigger the workflow would look like this:
+```
+curl --silent --location 'https://api.github.com/repos/dtlaycock/jfrog-github-oidc-example/dispatches' \
+--header 'Accept: application/vnd.github+json' \
+--header 'X-GitHub-Api-Version: 2022-11-28' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: ••••••' \
+--data '{
+    "event_type": "build-publish",
+    "client_payload": {
+        "github_repository": "dtlaycock/test-team-repo",
+        "resolution_repo": "dominicl-npm-virtual",
+        "publish_repo": "dominicl-npm-virtual"
+    }
+}'
+```
 
-1. **Build**: Build your project using GitHub Actions.
-2. **Authenticate with JFrog**: Authenticate with JFrog Artifactory using OIDC.
-3. **Publish Artifact**: Publish the built artifact to JFrog Artifactory.
-
-## Configuration
-
-Adjust the configuration files to match your project structure and requirements:
-
-- `.github/workflows/main.yml`: GitHub Actions workflow configuration.
-
-## Secrets
-
-These secrets are used to authenticate and interact with JFrog Artifactory securely.
-
-## References
-
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [JFrog Artifactory OIDC Documentation](https://jfrog.com/help/r/jfrog-platform-administration-documentation/github-actions-oidc-integration-workflow)
-- [OpenID Connect (OIDC) Documentation](https://openid.net/connect/)
-
-## Contributing
-
-Feel free to contribute to this example by creating issues or pull requests. Your feedback and contributions are highly appreciated!
-
-## License
-
-This example repository is licensed under the [MIT License](LICENSE).
-
----
-
-**Disclaimer**: This example is for educational and illustrative purposes. Ensure you adhere to the terms and conditions of GitHub and JFrog when using their services.
+See [.github/workflows/repository-dispatch.yml]
